@@ -1,22 +1,4 @@
- 
---Put this into a Script in ServerScriptService!
---Whitelist by ninov#6969
- 
-local allowedUsers = {
-	--your usernames here!
-	--names are CASE SENSITIVE!
-	["person1"] = idearcuhhh,
-	["person2"] = whowhatwhen1230,
-}
- 
-game.Players.PlayerAdded:Connect(function(plr)
-	if allowedUsers[plr.Name] then
-		warn(plr.Name.." joined.")
-	else
-		warn(plr.Name.." tried to join but they aren't whitelisted.")
-		plr:Kick("You are not whitelisted!")
-	end
-end)
+
 
 print("wow you really suck at pvp THAT much you have to run an ak")
 
