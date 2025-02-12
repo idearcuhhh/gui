@@ -1,3 +1,19 @@
+local usernames= {
+    "idearcuhhh",
+    "whowhatwhen1230" -- Username to the player you are gonna whitelist.
+}
+ 
+game.Players.PlayerAdded:Connect(function(plr)
+    for i, v in pairs(usernames) do
+        if v == plr.Name then
+            print("Whitelisted")
+        else
+            print("Not whitelisted")
+            plr:Kick("Not whitelisted") -- Kick message.
+        end
+    end
+end)
+
 print("wow you really suck at pvp THAT much you have to run an ak")
 
 local TweenService = game:GetService("TweenService")
