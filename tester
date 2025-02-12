@@ -1,0 +1,139 @@
+while not game:IsLoaded() do wait() end
+while not game.Players.LocalPlayer do wait() end
+local lplr = game.Players.LocalPlayer
+while not lplr.Character do wait() end
+local ldata = game.ReplicatedStorage:WaitForChild("Datas"):WaitForChild(lplr.UserId)
+
+
+-- Load the character in
+if lplr.PlayerGui:FindFirstChild("Start") then
+	game:GetService("ReplicatedStorage").Package.Events.Start:InvokeServer()
+	if workspace.Others:FindFirstChild("Title") then
+		workspace.Others.Title:Destroy();
+	end;
+	local cam = game.Workspace.CurrentCamera;
+	cam.CameraType = Enum.CameraType.Custom;
+	cam.CameraSubject = lplr.Character.Humanoid;
+	_G.Ready = true
+	game.StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, true);
+	lplr.PlayerGui:WaitForChild("Main").Enabled = true
+	if lplr.PlayerGui:FindFirstChild("Start") then
+		lplr.PlayerGui.Start:Destroy()
+	end
+    lplr.PlayerGui.Main.bruh.Enabled = false
+    lplr.PlayerGui.Main.bruh.Enabled = true
+end
+
+
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local TopBar = Instance.new("Frame")
+local MinimizeButton = Instance.new("TextButton")
+local TitleLabel = Instance.new("TextLabel")
+local ActionButton = Instance.new("TextButton") -- "Start TP + Attacking" Button
+local UICornerMain = Instance.new("UICorner")
+local UICornerBar = Instance.new("UICorner")
+local UICornerButton = Instance.new("UICorner") -- UI Corner for Button
+
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- Main Frame
+MainFrame.Parent = ScreenGui
+MainFrame.Size = UDim2.new(0, 176, 0, 229)
+MainFrame.Position = UDim2.new(0.5, -88, 0.5, -114) -- Centered
+MainFrame.BackgroundColor3 = Color3.fromRGB(114, 182, 255)
+MainFrame.BackgroundTransparency = 0
+
+UICornerMain.Parent = MainFrame
+UICornerMain.CornerRadius = UDim.new(0, 8)
+
+-- Top Bar
+TopBar.Parent = MainFrame
+TopBar.Size = UDim2.new(0, 176, 0, 32)
+TopBar.Position = UDim2.new(0, 0, 0, 0)
+TopBar.BackgroundColor3 = Color3.fromRGB(97, 154, 216)
+TopBar.BackgroundTransparency = 0
+
+UICornerBar.Parent = TopBar
+UICornerBar.CornerRadius = UDim.new(0, 8)
+
+-- Minimize Button
+MinimizeButton.Parent = TopBar
+MinimizeButton.Size = UDim2.new(0, 43, 0, 32)
+MinimizeButton.Position = UDim2.new(0.045, 0, 0, 0)
+MinimizeButton.BackgroundTransparency = 1
+MinimizeButton.Text = "-"
+MinimizeButton.TextScaled = true
+MinimizeButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+
+-- Title Label ("Idealicious AK")
+TitleLabel.Parent = TopBar
+TitleLabel.Size = UDim2.new(0, 113, 0, 22)
+TitleLabel.Position = UDim2.new(0.227, 0, 0.156, 0)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = "Idealicious AK"
+TitleLabel.TextScaled = true
+TitleLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
+TitleLabel.Font = Enum.Font.SourceSansBold
+
+-- Start TP + Attacking Button
+ActionButton.Parent = MainFrame
+ActionButton.Size = UDim2.new(0, 167, 0, 31)
+ActionButton.Position = UDim2.new(0.023, 0, 0.188, 0)
+ActionButton.BackgroundColor3 = Color3.fromRGB(110, 175, 245)
+ActionButton.Text = "Start TP + Attacking"
+ActionButton.TextScaled = true
+ActionButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+
+UICornerButton.Parent = ActionButton
+UICornerButton.CornerRadius = UDim.new(0, 8)
+
+-- Minimize Functionality
+local isMinimized = false
+MinimizeButton.MouseButton1Click:Connect(function()
+	isMinimized = not isMinimized
+
+	local targetSize = isMinimized and UDim2.new(0, 176, 0, 32) or UDim2.new(0, 176, 0, 229)
+	local tweenInfo = TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	local tween = TweenService:Create(MainFrame, tweenInfo, {Size = targetSize})
+
+	-- Hide/Show Buttons based on state
+	ActionButton.Visible = not isMinimized
+	ActionButton.Active = not isMinimized
+	ActionButton.Selectable = not isMinimized
+
+	tween:Play()
+end)
+
+-- Dragging Functionality
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+local function onInputBegan(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = true
+		dragStart = input.Position
+		startPos = MainFrame.Position
+
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end
+
+local function onInputChanged(input)
+	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+		local delta = input.Position - dragStart
+		MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+	end
+end
+
+TopBar.InputBegan:Connect(onInputBegan)
+UserInputService.InputChanged:Connect(onInputChanged)
