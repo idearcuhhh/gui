@@ -1,29 +1,4 @@
-while not game:IsLoaded() do wait() end
-while not game.Players.LocalPlayer do wait() end
-local lplr = game.Players.LocalPlayer
-while not lplr.Character do wait() end
-local ldata = game.ReplicatedStorage:WaitForChild("Datas"):WaitForChild(lplr.UserId)
-
-
--- Load the character in
-if lplr.PlayerGui:FindFirstChild("Start") then
-	game:GetService("ReplicatedStorage").Package.Events.Start:InvokeServer()
-	if workspace.Others:FindFirstChild("Title") then
-		workspace.Others.Title:Destroy();
-	end;
-	local cam = game.Workspace.CurrentCamera;
-	cam.CameraType = Enum.CameraType.Custom;
-	cam.CameraSubject = lplr.Character.Humanoid;
-	_G.Ready = true
-	game.StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, true);
-	lplr.PlayerGui:WaitForChild("Main").Enabled = true
-	if lplr.PlayerGui:FindFirstChild("Start") then
-		lplr.PlayerGui.Start:Destroy()
-	end
-    lplr.PlayerGui.Main.bruh.Enabled = false
-    lplr.PlayerGui.Main.bruh.Enabled = true
-end
-
+print("wow you really suck at pvp THAT much you have to run an ak")
 
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
