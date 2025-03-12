@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
 
 local transformationMap = {
     ["Divine Rose Prominence"] = "[DRP]",
@@ -14,12 +15,20 @@ local transformationMap = {
 }
 
 local function getPlayerTransformation(player)
-    local character = player.Character
+    local livingFolder = Workspace:FindFirstChild("Living")
+    if not livingFolder then return "[Base]" end
+
+    local character = livingFolder:FindFirstChild(player.Name)
     if not character then return "[Base]" end
 
     local statusFolder = character:FindFirstChild("Status")
+    if not statusFolder then return "[Base]" end
 
     local transformation = statusFolder:FindFirstChild("Transformation")
+    if not transformation then
+        transformation = statusFolder:WaitForChild("Transformation", 3) -- Wait up to 3 seconds
+    end
+
     if transformation and transformation:IsA("StringValue") then
         return transformationMap[transformation.Value] or "[Base]"
     end
@@ -69,8 +78,11 @@ local function updateBillboard(billboard, player)
     local form = getPlayerTransformation(player)
     local displayText = string.format("%s %s [@%s] | [%s]", form, player.DisplayName, player.Name, formattedHealth)
 
-    billboard.TextLabel.Text = displayText
-    billboard.TextLabel.TextColor3 = getHealthColor(health)
+    local textLabel = billboard:FindFirstChild("TextLabel")
+    if textLabel then
+        textLabel.Text = displayText
+        textLabel.TextColor3 = getHealthColor(health)
+    end
 end
 
 local function createBillboard(player)
@@ -94,17 +106,20 @@ local function createBillboard(player)
     billboard.Parent = head
 
     local textLabel = Instance.new("TextLabel")
+    textLabel.Name = "TextLabel"
     textLabel.Size = UDim2.new(1, 0, 1, 0)
     textLabel.BackgroundTransparency = 1
     textLabel.TextScaled = false
     textLabel.Font = Enum.Font.SourceSansBold
     textLabel.TextStrokeTransparency = 0.3
-    textLabel.TextSize = 24 -- Make text larger
+    textLabel.TextSize = 15 -- Make text larger
     textLabel.Parent = billboard
 
-    RunService.RenderStepped:Connect(function()
-        if billboard.Parent then
+    -- Update the billboard continuously
+    task.spawn(function()
+        while billboard.Parent and character.Parent do
             updateBillboard(billboard, player)
+            task.wait(0) -- Real-time update
         end
     end)
 end
