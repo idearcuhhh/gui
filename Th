@@ -2,7 +2,7 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
--- Mapping transformations to their display names
+-- Transformation map
 local transformationMap = {
     ["Divine Rose Prominence"] = "[DRP]",
     ["Astral Instinct"] = "[AI]",
@@ -26,7 +26,7 @@ local function abbreviateNumber(num)
     return string.format("%.1f%s", num, suffixes[index]):gsub("%.0", "") -- Remove .0 if whole number
 end
 
--- Function to determine billboard color based on health
+-- Function to get the correct billboard color based on health
 local function getHealthColor(health)
     if health < 1000 then
         return Color3.fromRGB(0, 255, 0) -- Green
@@ -43,20 +43,29 @@ local function getHealthColor(health)
     end
 end
 
--- Function to get player's transformation
+-- Function to get the player's transformation
 local function getPlayerTransformation(player)
     local playerFolder = Workspace:FindFirstChild("Players")
     if playerFolder then
         local playerStatus = playerFolder:FindFirstChild(player.Name)
         if playerStatus then
-            local statusFolder = playerStatus:FindFirstChild("Status") -- Corrected path
+            local statusFolder = playerStatus:FindFirstChild("Status")
             if statusFolder then
                 local transformation = statusFolder:FindFirstChild("Transformation")
                 if transformation and transformation:IsA("StringValue") and transformation.Value ~= "" then
-                    return transformationMap[transformation.Value] or "[Base]" -- Default to [Base] if unknown
+                    print("Transformation found for", player.Name, ":", transformation.Value) -- Debugging
+                    return transformationMap[transformation.Value] or "[Base]"
+                else
+                    print("No transformation found for", player.Name) -- Debugging
                 end
+            else
+                print("No Status folder for", player.Name) -- Debugging
             end
+        else
+            print("Player not found in Workspace.Players:", player.Name) -- Debugging
         end
+    else
+        print("Workspace.Players folder is missing!") -- Debugging
     end
     return "[Base]"
 end
