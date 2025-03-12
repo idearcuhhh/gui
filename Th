@@ -18,7 +18,6 @@ local function getPlayerTransformation(player)
     if not character then return "[Base]" end
 
     local statusFolder = character:FindFirstChild("Status")
-    if not statusFolder then return "[Base]" end
 
     local transformation = statusFolder:FindFirstChild("Transformation")
     if transformation and transformation:IsA("StringValue") then
