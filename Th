@@ -1,6 +1,5 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local Workspace = game:GetService("Workspace")
 
 local transformationMap = {
     ["Divine Rose Prominence"] = "[DRP]",
@@ -15,13 +14,7 @@ local transformationMap = {
 }
 
 local function getPlayerTransformation(player)
-    local livingFolder = Workspace:FindFirstChild("Living")
-    if not livingFolder then return "[Base]" end
-
-    local character = livingFolder:FindFirstChild(player.Name)
-    if not character then return "[Base]" end
-
-    local statusFolder = character:FindFirstChild("Status")
+    local statusFolder = player:FindFirstChild("Status")
     if not statusFolder then return "[Base]" end
 
     local transformation = statusFolder:FindFirstChild("Transformation")
@@ -86,7 +79,6 @@ local function createBillboard(player)
     local head = character:FindFirstChild("Head")
     if not head then return end
 
-    -- Remove old billboards
     local oldBillboard = head:FindFirstChild("PlayerBillboard")
     if oldBillboard then
         oldBillboard:Destroy()
@@ -94,7 +86,7 @@ local function createBillboard(player)
 
     local billboard = Instance.new("BillboardGui")
     billboard.Name = "PlayerBillboard"
-    billboard.Size = UDim2.new(10, 0, 3, 0) -- Bigger size
+    billboard.Size = UDim2.new(10, 0, 3, 0)
     billboard.StudsOffset = Vector3.new(0, 4, 0)
     billboard.AlwaysOnTop = true
     billboard.Parent = head
@@ -106,10 +98,10 @@ local function createBillboard(player)
     textLabel.TextScaled = false
     textLabel.Font = Enum.Font.SourceSansBold
     textLabel.TextStrokeTransparency = 0.3
-    textLabel.TextSize = 15 -- Make text larger
+    textLabel.TextSize = 15
     textLabel.Parent = billboard
 
-    -- **Continuously update billboard (every frame)**
+    -- Continuously update billboard (every frame)
     task.spawn(function()
         while billboard.Parent and character.Parent do
             updateBillboard(billboard, player)
@@ -117,8 +109,8 @@ local function createBillboard(player)
         end
     end)
 
-    -- **Listen for transformation changes**
-    local statusFolder = character:FindFirstChild("Status")
+    -- Listen for transformation changes
+    local statusFolder = player:FindFirstChild("Status")
     if statusFolder then
         local transformation = statusFolder:FindFirstChild("Transformation")
         if transformation and transformation:IsA("StringValue") then
