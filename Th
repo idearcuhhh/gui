@@ -21,13 +21,9 @@ local function getPlayerTransformation(player)
     local character = livingFolder:FindFirstChild(player.Name)
     if not character then return "[Base]" end
 
-    local statusFolder = character:FindFirstChild("Status")
-    if not statusFolder then return "[Base]" end
-
-    local transformation = statusFolder:FindFirstChild("Transformation")
-    if not transformation then
-        transformation = statusFolder:WaitForChild("Transformation", 3) -- Wait up to 3 seconds
-    end
+    -- Wait for "Status" and "Transformation" to exist
+    local statusFolder = character:WaitForChild("Status") 
+    local transformation = statusFolder:WaitForChild("Transformation")
 
     if transformation and transformation:IsA("StringValue") then
         return transformationMap[transformation.Value] or "[Base]"
