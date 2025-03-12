@@ -15,7 +15,7 @@ local transformationMap = {
     ["Jiren Ultra Instinct"] = "[JUI]"
 }
 
--- Function to abbreviate numbers (e.g., 1000000 -> 1M)
+-- Function to abbreviate numbers
 local function abbreviateNumber(num)
     local suffixes = { "", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc" }
     local index = 1
@@ -23,10 +23,10 @@ local function abbreviateNumber(num)
         num = num / 1000
         index = index + 1
     end
-    return string.format("%.1f%s", num, suffixes[index]):gsub("%.0", "") -- Remove .0 for whole numbers
+    return string.format("%.1f%s", num, suffixes[index]):gsub("%.0", "") -- Remove .0 if whole number
 end
 
--- Function to determine the color based on health value
+-- Function to determine billboard color based on health
 local function getHealthColor(health)
     if health < 1000 then
         return Color3.fromRGB(0, 255, 0) -- Green
@@ -43,16 +43,17 @@ local function getHealthColor(health)
     end
 end
 
+-- Function to get player's transformation
 local function getPlayerTransformation(player)
     local playerFolder = Workspace:FindFirstChild("Players")
     if playerFolder then
         local playerStatus = playerFolder:FindFirstChild(player.Name)
         if playerStatus then
-            local status = playerStatus:FindFirstChild("Status") -- Fixed capitalization
-            if status then
-                local transformation = status:FindFirstChild("Transformation")
-                if transformation and transformation.Value ~= "" then
-                    return transformationMap[transformation.Value] or "[Base]" -- Default to [Base] if not mapped
+            local statusFolder = playerStatus:FindFirstChild("Status") -- Corrected path
+            if statusFolder then
+                local transformation = statusFolder:FindFirstChild("Transformation")
+                if transformation and transformation:IsA("StringValue") and transformation.Value ~= "" then
+                    return transformationMap[transformation.Value] or "[Base]" -- Default to [Base] if unknown
                 end
             end
         end
@@ -60,6 +61,7 @@ local function getPlayerTransformation(player)
     return "[Base]"
 end
 
+-- Function to create and update the billboard
 local function createBillboard(player)
     if not player.Character or not player.Character:FindFirstChild("Head") then return end
 
