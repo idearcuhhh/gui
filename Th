@@ -1,8 +1,6 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local Workspace = game:GetService("Workspace")
 
--- Transformation map
 local transformationMap = {
     ["Divine Rose Prominence"] = "[DRP]",
     ["Astral Instinct"] = "[AI]",
@@ -15,130 +13,96 @@ local transformationMap = {
     ["Jiren Ultra Instinct"] = "[JUI]"
 }
 
--- Function to abbreviate numbers
+-- Function to get a player's transformation
+local function getPlayerTransformation(player)
+    local playerData = game.Players:FindFirstChild(player.Name)
+    if not playerData then return "[Base]" end
+
+    local statusFolder = playerData:FindFirstChild("Status")
+    if not statusFolder then return "[Base]" end
+
+    local transformation = statusFolder:FindFirstChild("Transformation")
+    if transformation and transformation:IsA("StringValue") then
+        return transformationMap[transformation.Value] or "[Base]"
+    end
+
+    return "[Base]"
+end
+
+-- Function to format large numbers (health display)
 local function abbreviateNumber(num)
-    local suffixes = { "", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc" }
+    local suffixes = {"", "K", "M", "B", "T", "QD"}
     local index = 1
+
     while num >= 1000 and index < #suffixes do
         num = num / 1000
         index = index + 1
     end
-    return string.format("%.1f%s", num, suffixes[index]):gsub("%.0", "") -- Remove .0 if whole number
+
+    return string.format("%.1f%s", num, suffixes[index])
 end
 
--- Function to get the correct billboard color based on health
-local function getHealthColor(health)
-    if health < 1000 then
-        return Color3.fromRGB(0, 255, 0) -- Green
-    elseif health < 1_000_000 then
-        return Color3.fromRGB(255, 255, 0) -- Yellow
-    elseif health < 1_000_000_000 then
-        return Color3.fromRGB(255, 0, 0) -- Red
-    elseif health < 1_000_000_000_000 then
-        return Color3.fromRGB(0, 0, 255) -- Blue
-    elseif health < 1_000_000_000_000_000 then
-        return Color3.fromRGB(0, 255, 255) -- Light Blue
-    else
-        return Color3.fromRGB(128, 0, 128) -- Purple
-    end
-end
-
--- Function to get the player's transformation
-local function getPlayerTransformation(player)
-    local playerFolder = Workspace:FindFirstChild("Players")
-    if playerFolder then
-        local playerStatus = playerFolder:FindFirstChild(player.Name)
-        if playerStatus then
-            local statusFolder = playerStatus:FindFirstChild("Status")
-            if statusFolder then
-                local transformation = statusFolder:FindFirstChild("Transformation")
-                if transformation and transformation:IsA("StringValue") and transformation.Value ~= "" then
-                    print("Transformation found for", player.Name, ":", transformation.Value) -- Debugging
-                    return transformationMap[transformation.Value] or "[Base]"
-                else
-                    print("No transformation found for", player.Name) -- Debugging
-                end
-            else
-                print("No Status folder for", player.Name) -- Debugging
-            end
-        else
-            print("Player not found in Workspace.Players:", player.Name) -- Debugging
-        end
-    else
-        print("Workspace.Players folder is missing!") -- Debugging
-    end
-    return "[Base]"
-end
-
--- Function to create and update the billboard
-local function createBillboard(player)
-    if not player.Character or not player.Character:FindFirstChild("Head") then return end
-
+-- Function to update the billboard UI
+local function updateBillboard(billboard, player)
     local character = player.Character
+    if not character then return end
+
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if not humanoid then return end
+
+    local health = humanoid.Health
+    local maxHealth = humanoid.MaxHealth
+    local formattedHealth = string.format("%s/%s HP", abbreviateNumber(health), abbreviateNumber(maxHealth))
+
+    local form = getPlayerTransformation(player)
+    local displayText = string.format("%s %s [@%s] | [%s]", form, player.DisplayName, player.Name, formattedHealth)
+
+    billboard.TextLabel.Text = displayText
+end
+
+-- Function to set up the billboard UI
+local function createBillboard(player)
+    local character = player.Character
+    if not character then return end
+
     local head = character:FindFirstChild("Head")
+    if not head then return end
 
-    -- Remove existing BillboardGuis to prevent duplicates
-    if head:FindFirstChild("NameTag") then
-        head:FindFirstChild("NameTag"):Destroy()
-    end
-
-    -- Create BillboardGui
     local billboard = Instance.new("BillboardGui")
-    billboard.Name = "NameTag"
-    billboard.Size = UDim2.new(0, 200, 0, 50)
-    billboard.StudsOffset = Vector3.new(0, 2.5, 0)
+    billboard.Name = "PlayerBillboard"
+    billboard.Size = UDim2.new(4, 0, 1, 0)
+    billboard.StudsOffset = Vector3.new(0, 2, 0)
     billboard.AlwaysOnTop = true
-    billboard.Adornee = head
     billboard.Parent = head
 
-    -- Create TextLabel
     local textLabel = Instance.new("TextLabel")
     textLabel.Size = UDim2.new(1, 0, 1, 0)
     textLabel.BackgroundTransparency = 1
-    textLabel.TextStrokeTransparency = 0
-    textLabel.Font = Enum.Font.SourceSansBold
-    textLabel.TextSize = 20
     textLabel.TextScaled = false
+    textLabel.Font = Enum.Font.SourceSansBold
+    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    textLabel.TextStrokeTransparency = 0.3
     textLabel.Parent = billboard
 
-    -- Function to update text and color continuously
-    task.spawn(function()
-        while player and player.Character and player.Character:FindFirstChild("Humanoid") do
-            local humanoid = player.Character:FindFirstChild("Humanoid")
-            local currentHealth = math.floor(humanoid.Health)
-            local maxHealth = math.floor(humanoid.MaxHealth)
-
-            local currentHealthText = abbreviateNumber(currentHealth)
-            local maxHealthText = abbreviateNumber(maxHealth)
-
-            local transformation = getPlayerTransformation(player)
-
-            textLabel.Text = string.format("%s %s [@%s] | [%s/%s HP]", transformation, player.DisplayName, player.Name, currentHealthText, maxHealthText)
-            textLabel.TextColor3 = getHealthColor(currentHealth) -- Change text color dynamically
-            
-            task.wait(0) -- Allows smooth updates without overwhelming performance
+    -- Update the UI every frame
+    RunService.RenderStepped:Connect(function()
+        if billboard.Parent then
+            updateBillboard(billboard, player)
         end
     end)
 end
 
-local function onCharacterAdded(character)
-    local player = Players:GetPlayerFromCharacter(character)
-    if player then
-        task.wait(1) -- Small delay to ensure character is loaded
+-- Apply billboard when player joins
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function()
+        task.wait(1) -- Small delay to let character load
         createBillboard(player)
-    end
-end
+    end)
+end)
 
-local function onPlayerAdded(player)
+-- Apply billboard for existing players (in case script starts mid-game)
+for _, player in pairs(Players:GetPlayers()) do
     if player.Character then
         createBillboard(player)
     end
-    player.CharacterAdded:Connect(onCharacterAdded)
 end
-
--- Connect to all players
-for _, player in ipairs(Players:GetPlayers()) do
-    onPlayerAdded(player)
-end
-
-Players.PlayerAdded:Connect(onPlayerAdded)
