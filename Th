@@ -99,7 +99,7 @@ local function createBillboard(player)
     textLabel.TextScaled = false
     textLabel.Font = Enum.Font.SourceSansBold
     textLabel.TextStrokeTransparency = 0.3
-    textLabel.TextSize = 20 -- Make text larger
+    textLabel.TextSize = 24 -- Make text larger
     textLabel.Parent = billboard
 
     RunService.RenderStepped:Connect(function()
