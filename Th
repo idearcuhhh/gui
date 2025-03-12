@@ -20,7 +20,8 @@ local function getPlayerTransformation(player)
     local transformation = statusFolder:FindFirstChild("Transformation")
     if not transformation or not transformation:IsA("StringValue") then return "[Base]" end
 
-    return transformationMap[transformation.Value] or transformation.Value or "[Base]"
+    local form = transformationMap[transformation.Value] or transformation.Value or "Base"
+    return string.format("[%s]", form) -- Wrap in brackets
 end
 
 local function abbreviateNumber(num)
@@ -63,7 +64,7 @@ local function updateBillboard(billboard, player)
     local formattedHealth = string.format("%s/%s HP", abbreviateNumber(health), abbreviateNumber(maxHealth))
 
     local form = getPlayerTransformation(player)
-    local displayText = string.format("[%s] %s [@%s] | [%s]", form, player.DisplayName, player.Name, formattedHealth)
+    local displayText = string.format("%s %s [@%s] | [%s]", form, player.DisplayName, player.Name, formattedHealth)
 
     local textLabel = billboard:FindFirstChild("TextLabel")
     if textLabel then
@@ -86,8 +87,8 @@ local function createBillboard(player)
 
     local billboard = Instance.new("BillboardGui")
     billboard.Name = "PlayerBillboard"
-    billboard.Size = UDim2.new(10, 0, 3, 0)
-    billboard.StudsOffset = Vector3.new(0, 4, 0)
+    billboard.Size = UDim2.new(12, 0, 4, 0) -- **Increased billboard size**
+    billboard.StudsOffset = Vector3.new(0, 5, 0) -- **Lifted higher above head**
     billboard.AlwaysOnTop = true
     billboard.Parent = head
 
@@ -95,21 +96,21 @@ local function createBillboard(player)
     textLabel.Name = "TextLabel"
     textLabel.Size = UDim2.new(1, 0, 1, 0)
     textLabel.BackgroundTransparency = 1
-    textLabel.TextScaled = false
+    textLabel.TextScaled = true -- **Text now auto-scales**
     textLabel.Font = Enum.Font.SourceSansBold
-    textLabel.TextStrokeTransparency = 0.3
-    textLabel.TextSize = 24
+    textLabel.TextStrokeTransparency = 0.2 -- **Thicker text stroke**
+    textLabel.TextSize = 20 -- **Slightly bigger text**
     textLabel.Parent = billboard
 
-    -- Continuously update billboard (every frame)
+    -- **Continuously update billboard (every frame)**
     task.spawn(function()
         while billboard.Parent and character.Parent do
             updateBillboard(billboard, player)
-            task.wait(0) -- Real-time update
+            task.wait(0) -- **Real-time update**
         end
     end)
 
-    -- Listen for transformation changes
+    -- **Listen for transformation changes**
     local statusFolder = player:FindFirstChild("Status")
     if statusFolder then
         local transformation = statusFolder:FindFirstChild("Transformation")
@@ -123,7 +124,7 @@ end
 
 Players.PlayerAdded:Connect(function(player)
     player.CharacterAdded:Connect(function()
-        task.wait(1) -- Small delay to let character load
+        task.wait(1) -- **Small delay to let character load**
         createBillboard(player)
     end)
 end)
