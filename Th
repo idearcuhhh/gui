@@ -21,15 +21,13 @@ local function getPlayerTransformation(player)
     local character = livingFolder:FindFirstChild(player.Name)
     if not character then return "[Base]" end
 
-    -- Wait for "Status" and "Transformation" to exist
-    local statusFolder = character:WaitForChild("Status") 
-    local transformation = statusFolder:WaitForChild("Transformation")
+    local statusFolder = character:FindFirstChild("Status")
+    if not statusFolder then return "[Base]" end
 
-    if transformation and transformation:IsA("StringValue") then
-        return transformationMap[transformation.Value] or "[Base]"
-    end
+    local transformation = statusFolder:FindFirstChild("Transformation")
+    if not transformation or not transformation:IsA("StringValue") then return "[Base]" end
 
-    return "[Base]"
+    return transformationMap[transformation.Value] or transformation.Value or "[Base]"
 end
 
 local function abbreviateNumber(num)
@@ -111,13 +109,24 @@ local function createBillboard(player)
     textLabel.TextSize = 15 -- Make text larger
     textLabel.Parent = billboard
 
-    -- Update the billboard continuously
+    -- **Continuously update billboard (every frame)**
     task.spawn(function()
         while billboard.Parent and character.Parent do
             updateBillboard(billboard, player)
             task.wait(0) -- Real-time update
         end
     end)
+
+    -- **Listen for transformation changes**
+    local statusFolder = character:FindFirstChild("Status")
+    if statusFolder then
+        local transformation = statusFolder:FindFirstChild("Transformation")
+        if transformation and transformation:IsA("StringValue") then
+            transformation.Changed:Connect(function()
+                updateBillboard(billboard, player)
+            end)
+        end
+    end
 end
 
 Players.PlayerAdded:Connect(function(player)
